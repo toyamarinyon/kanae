@@ -2,7 +2,7 @@
 
 set -eu
 
-ENKA_VERSION=${ENKA_VERSION:-0.1.3}
+ENKA_VERSION=${ENKA_VERSION:-0.2.0}
 ENKA_DIST_DIR=${ENKA_DIST_DIR:-dist}
 
 OS=$(uname -s)
