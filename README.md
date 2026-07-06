@@ -2,7 +2,7 @@
 
 `enka` maps left/right Command key single-taps to macOS input-source keys.
 
-It is intentionally focused on one small job:
+It is intentionally focused on a small job:
 
 - left Command single-tap posts the JIS 英数 key event
 - right Command single-tap posts the JIS かな key event
@@ -10,8 +10,35 @@ It is intentionally focused on one small job:
 - pressing both Command keys together cancels both actions
 
 The daemon watches Command releases and posts the JIS 英数 / かな key events
-directly with `CGEvent.post`. There is no preferences UI, no general key
-remapping, and no extra switching mode.
+directly with `CGEvent.post`. There is no preferences UI and no general key
+remapping.
+
+### ASCII input rules
+
+Some apps interpret a key chord through the host input source even though
+the chord is meant to run a command rather than type text -- for example, a
+terminal multiplexer's prefix key. If a かな input source is active, the
+chord's follow-up key types Japanese instead of running the command. `enka`
+can force the JIS 英数 key first, one-way with no restore, whenever a
+configured chord is pressed while a configured process is running under the
+frontmost app.
+
+Rules live in `~/.config/enka/config.json` (missing file = no rules):
+
+```json
+{
+  "asciiInputRules": [
+    { "process": "herdr", "key": "ctrl+q" }
+  ]
+}
+```
+
+`key` is a chord of `ctrl`/`cmd`/`shift`/`alt` modifiers plus one letter,
+digit, or `space` (e.g. `"ctrl+b"`, `"cmd+shift+k"`). `process` is matched
+against process names in the frontmost app's descendant process tree, so it
+works regardless of which terminal emulator hosts the process. Edit the file
+and run `enka restart` to apply changes; malformed entries are skipped
+individually with a message on stderr.
 
 ## Install
 
@@ -169,6 +196,7 @@ Development path overrides:
 - `ENKA_INSTALL_ROOT`: install root used by installation, status, and plist generation
 - `ENKA_LAUNCH_AGENT_DIR`: LaunchAgent directory (default: `~/Library/LaunchAgents`)
 - `ENKA_STATE_DIR`: state/log directory (default: `~/.local/state/enka`)
+- `ENKA_CONFIG_DIR`: config directory for ASCII input rules (default: `~/.config/enka`)
 
 ## Release Packaging
 

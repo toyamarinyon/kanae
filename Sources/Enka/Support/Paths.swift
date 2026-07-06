@@ -30,6 +30,14 @@ func stateDirectoryPath() -> String {
     envOverride("ENKA_STATE_DIR") ?? userHomeDirectory().appending("/.local/state/enka")
 }
 
+func configDirectoryPath() -> String {
+    envOverride("ENKA_CONFIG_DIR") ?? userHomeDirectory().appending("/.config/enka")
+}
+
+func configFilePath() -> String {
+    configDirectoryPath().appending("/config.json")
+}
+
 func standardOutputLogPath() -> String {
     stateDirectoryPath().appending("/enka.log")
 }

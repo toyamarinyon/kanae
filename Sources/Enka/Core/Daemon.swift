@@ -15,11 +15,17 @@ struct KeyState {
 final class LauncherState {
     private let leftKeyCode: CGKeyCode = 55
     private let rightKeyCode: CGKeyCode = 54
-    private let leftTapKeyCode: CGKeyCode = 102
-    private let rightTapKeyCode: CGKeyCode = 104
+    private let eisuKeyCode: CGKeyCode = 102
+    private let kanaKeyCode: CGKeyCode = 104
+
+    private let asciiInputRules: [ResolvedAsciiInputRule]
 
     private var leftState = KeyState()
     private var rightState = KeyState()
+
+    init(asciiInputRules: [ResolvedAsciiInputRule] = []) {
+        self.asciiInputRules = asciiInputRules
+    }
 
     func handle(event: CGEvent, type: CGEventType) -> Unmanaged<CGEvent>? {
         let keyCode = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
@@ -34,6 +40,7 @@ final class LauncherState {
                 rightState.sawOtherKey = false
             } else {
                 markOtherKeyPressed()
+                handleAsciiInputRules(event: event, keyCode: keyCode)
             }
 
         case .flagsChanged:
@@ -97,7 +104,7 @@ final class LauncherState {
             guard leftState.isPressed, !leftState.sawOtherKey else {
                 return
             }
-            postTapKey(leftTapKeyCode)
+            postTapKey(eisuKeyCode)
 
         case .right:
             defer {
@@ -107,8 +114,26 @@ final class LauncherState {
             guard rightState.isPressed, !rightState.sawOtherKey else {
                 return
             }
-            postTapKey(rightTapKeyCode)
+            postTapKey(kanaKeyCode)
         }
+    }
+
+    private func handleAsciiInputRules(event: CGEvent, keyCode: CGKeyCode) {
+        guard !asciiInputRules.isEmpty else { return }
+        guard event.getIntegerValueField(.keyboardEventAutorepeat) == 0 else { return }
+
+        let relevantFlags: CGEventFlags = [.maskCommand, .maskShift, .maskControl, .maskAlternate]
+        let currentFlags = event.flags.intersection(relevantFlags)
+
+        let matchingRules = asciiInputRules.filter { $0.keyCode == keyCode && $0.flags == currentFlags }
+        guard !matchingRules.isEmpty else { return }
+
+        guard let frontmostPID = frontmostApplicationProcessID() else { return }
+        guard matchingRules.contains(where: { processTree(rootedAt: frontmostPID, contains: $0.process) }) else {
+            return
+        }
+
+        postTapKey(eisuKeyCode)
     }
 
     private func postTapKey(_ keyCode: CGKeyCode) {
@@ -153,7 +178,8 @@ func createEventTap(state: LauncherState) throws -> CFMachPort {
 }
 
 func runDaemon() throws {
-    let state = LauncherState()
+    let asciiInputRules = loadAsciiInputRules(fromFile: configFilePath())
+    let state = LauncherState(asciiInputRules: asciiInputRules)
 
     guard checkAccessibilityPermission() else {
         throw EnkaError.accessibilityPermissionRequired
