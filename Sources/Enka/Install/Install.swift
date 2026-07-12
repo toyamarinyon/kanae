@@ -3,8 +3,7 @@ import Darwin
 
 func printInstallSummary(plistPath: String) {
     print("Summary:")
-    print("  left Command:  posts JIS Eisuu key (102)")
-    print("  right Command: posts JIS Kana key (104)")
+    print("  bindings:      \(configFilePath())")
     print("  plist path:    \(plistPath)")
     print("  app path:      \(installedAppPath())")
     print("  enka binary:  \(installedBinaryPath())")
@@ -133,6 +132,22 @@ func runInstall(
 
     let fm = FileManager.default
     let previousPlistExists = fm.fileExists(atPath: plistPath)
+
+    let configPath = configFilePath()
+    if !fm.fileExists(atPath: configPath) {
+        do {
+            try ensureDirectory(atPath: configDirectoryPath())
+            try (defaultConfigJSON + "\n").write(toFile: configPath, atomically: true, encoding: .utf8)
+            print("Config: Created: \(configPath)")
+            logToSetup("\(setupLogPrefix()) [setup] wrote default config: \(configPath)")
+        } catch {
+            writeStderr("error: failed to write default config at \(configPath): \(error.localizedDescription)\n")
+            exit(1)
+        }
+    } else {
+        print("Config: Preserved: \(configPath)")
+        logToSetup("\(setupLogPrefix()) [setup] preserved existing config: \(configPath)")
+    }
 
     do {
         try ensureDirectory(atPath: plistDir)

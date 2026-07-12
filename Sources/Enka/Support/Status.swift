@@ -9,6 +9,7 @@ func printStatus() {
     let outputLogPath = standardOutputLogPath()
     let errorLogPath = standardErrorLogPath()
     let stateDir = stateDirectoryPath()
+    let configPath = configFilePath()
 
     print("LaunchAgent:  \(plistPath) (\(fm.fileExists(atPath: plistPath) ? "exists" : "missing"))")
     print("App:          \(appPath) (\(fm.fileExists(atPath: appPath) ? "exists" : "missing"))")
@@ -16,6 +17,15 @@ func printStatus() {
     print("Binary:       \(installedBinaryPath()) (\(fm.fileExists(atPath: installedBinaryPath()) ? "exists" : "missing"))")
     print("Logs:         stdout=\(outputLogPath) (\(fm.fileExists(atPath: outputLogPath) ? "exists" : "missing")), stderr=\(errorLogPath) (\(fm.fileExists(atPath: errorLogPath) ? "exists" : "missing"))")
     print("State dir:    \(stateDir) (\(fm.fileExists(atPath: stateDir) ? "exists" : "missing"))")
+    let configResult = loadBindings(fromFile: configPath, report: { _ in })
+    switch configResult.status {
+    case .missing:
+        print("Config:       \(configPath) (missing)")
+    case let .loaded(valid, invalid):
+        print("Config:       \(configPath) (loaded: \(valid) valid, \(invalid) invalid)")
+    case let .failed(reason):
+        print("Config:       \(configPath) (failed: \(reason))")
+    }
 
     let accessibilityStatus = runAccessibilityStatusSubcommand(
         executablePath: appExecutablePath,

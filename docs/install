@@ -128,5 +128,5 @@ else
 fi
 
 echo ""
-echo "✓ Setup complete! Use left/right Command to switch input sources."
+echo "✓ Setup complete! Enka bindings are ready."
 echo "  Document: https://github.com/toyamarinyon/enka"

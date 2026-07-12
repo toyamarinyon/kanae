@@ -1,11 +1,11 @@
 # enka
 
-`enka` maps left/right Command key single-taps to macOS input-source keys.
+`enka` switches macOS input sources in response to a small, configurable set of key gestures.
 
 It is intentionally focused on a small job:
 
-- left Command single-tap posts the JIS 英数 key event
-- right Command single-tap posts the JIS かな key event
+- the default left Command single-tap posts the JIS 英数 key event
+- the default right Command single-tap posts the JIS かな key event
 - pressing another key while Command is held cancels the action
 - pressing both Command keys together cancels both actions
 
@@ -13,7 +13,7 @@ The daemon watches Command releases and posts the JIS 英数 / かな key events
 directly with `CGEvent.post`. There is no preferences UI and no general key
 remapping.
 
-### ASCII input rules
+### Bindings
 
 Some apps interpret a key chord through the host input source even though
 the chord is meant to run a command rather than type text -- for example, a
@@ -23,22 +23,49 @@ can force the JIS 英数 key first, one-way with no restore, whenever a
 configured chord is pressed while a configured process is running under the
 frontmost app.
 
-Rules live in `~/.config/enka/config.json` (missing file = no rules):
+Bindings live in `~/.config/enka/config.json`. `enka install` creates the
+default Command bindings when this file is absent and never overwrites an
+existing file:
 
 ```json
 {
-  "asciiInputRules": [
-    { "process": "herdr", "key": "ctrl+q" }
+  "bindings": [
+    {
+      "trigger": { "gesture": "tap", "key": "left_cmd" },
+      "action": "ascii"
+    },
+    {
+      "trigger": { "gesture": "tap", "key": "right_cmd" },
+      "action": "kana"
+    },
+    {
+      "trigger": {
+        "gesture": "press",
+        "key": "q",
+        "modifiers": ["ctrl"]
+      },
+      "action": "ascii",
+      "process": "herdr"
+    }
   ]
 }
 ```
 
-`key` is a chord of `ctrl`/`cmd`/`shift`/`alt` modifiers plus one letter,
-digit, or `space` (e.g. `"ctrl+b"`, `"cmd+shift+k"`). `process` is matched
-against process names in the frontmost app's descendant process tree, so it
-works regardless of which terminal emulator hosts the process. Edit the file
-and run `enka restart` to apply changes; malformed entries are skipped
-individually with a message on stderr.
+`tap` supports `left_cmd` and `right_cmd`. `press` supports a letter, digit, or
+`space`, with any combination of `ctrl`, `cmd`, `shift`, and `alt`. Actions are
+`ascii` and `kana`. The optional `process` is matched exactly against process
+names in the frontmost app's descendant process tree, so it works regardless
+of which terminal emulator hosts the process. Edit the file and run
+`enka restart` to apply changes; malformed bindings are skipped individually
+with a message on stderr.
+
+### Migrating from 0.2.0
+
+The `asciiInputRules` format has been removed. Replace each rule such as
+`{ "process": "herdr", "key": "ctrl+q" }` with a `press` binding as shown
+above. Add the two default `tap` bindings explicitly if you want to preserve
+the original left/right Command behavior. Existing configuration files are
+preserved during installation, so migration is manual.
 
 ## Install
 
@@ -167,6 +194,7 @@ Default paths:
 - LaunchAgent: `~/Library/LaunchAgents/dev.ultrahope.enka.plist`
 - install root: `~/Applications/enka`
 - state/logs: `~/.local/state/enka`
+- bindings: `~/.config/enka/config.json`
 
 ## Installer Configuration
 
@@ -196,7 +224,7 @@ Development path overrides:
 - `ENKA_INSTALL_ROOT`: install root used by installation, status, and plist generation
 - `ENKA_LAUNCH_AGENT_DIR`: LaunchAgent directory (default: `~/Library/LaunchAgents`)
 - `ENKA_STATE_DIR`: state/log directory (default: `~/.local/state/enka`)
-- `ENKA_CONFIG_DIR`: config directory for ASCII input rules (default: `~/.config/enka`)
+- `ENKA_CONFIG_DIR`: bindings config directory (default: `~/.config/enka`)
 
 ## Release Packaging
 
