@@ -1,6 +1,6 @@
-# enka
+# kanae
 
-`enka` switches macOS input sources in response to a small, configurable set of key gestures.
+`kanae` switches macOS input sources in response to a small, configurable set of key gestures.
 
 It is intentionally focused on a small job:
 
@@ -9,21 +9,21 @@ It is intentionally focused on a small job:
 - pressing another key while Command is held cancels the action
 - pressing both Command keys together cancels both actions
 
-The daemon watches Command releases and posts the JIS 英数 / かな key events
-directly with `CGEvent.post`. There is no preferences UI and no general key
-remapping.
+The daemon recognizes configured gestures and posts the JIS 英数 / かな key
+events directly with `CGEvent.post`. There is no preferences UI and no general
+key remapping.
 
 ### Bindings
 
 Some apps interpret a key chord through the host input source even though
 the chord is meant to run a command rather than type text -- for example, a
 terminal multiplexer's prefix key. If a かな input source is active, the
-chord's follow-up key types Japanese instead of running the command. `enka`
+chord's follow-up key types Japanese instead of running the command. `kanae`
 can force the JIS 英数 key first, one-way with no restore, whenever a
 configured chord is pressed while a configured process is running under the
 frontmost app.
 
-Bindings live in `~/.config/enka/config.json`. `enka install` creates the
+Bindings live in `~/.config/kanae/config.json`. `kanae install` creates the
 default Command bindings when this file is absent and never overwrites an
 existing file:
 
@@ -56,56 +56,65 @@ existing file:
 `ascii` and `kana`. The optional `process` is matched exactly against process
 names in the frontmost app's descendant process tree, so it works regardless
 of which terminal emulator hosts the process. Edit the file and run
-`enka restart` to apply changes; malformed bindings are skipped individually
+`kanae restart` to apply changes; malformed bindings are skipped individually
 with a message on stderr.
 
-### Migrating from 0.2.0
+### Migrating from Enka 0.2.0
 
-The `asciiInputRules` format has been removed. Replace each rule such as
+Kanae is the continuation of Enka under a new product identity. Uninstall Enka
+before installing Kanae so both LaunchAgents cannot run at the same time:
+
+```bash
+enka uninstall
+```
+
+Kanae uses new application, LaunchAgent, installation, state, and
+configuration paths. The Enka `asciiInputRules` format has also been removed.
+Replace each rule such as
 `{ "process": "herdr", "key": "ctrl+q" }` with a `press` binding as shown
 above. Add the two default `tap` bindings explicitly if you want to preserve
-the original left/right Command behavior. Existing configuration files are
-preserved during installation, so migration is manual.
+the original left/right Command behavior. `kanae install` creates those default
+bindings when its configuration file is absent.
 
 ## Install
 
 Install with one command:
 
 ```bash
-curl -fsSL https://enka.ultrahope.dev/install | sh
+curl -fsSL https://kanae.ultrahope.dev/install | sh
 ```
 
-The installer downloads the release archive and configures Enka automatically:
+The installer downloads the release archive and configures Kanae automatically:
 
 - downloads the hosted release and checksum
-- installs to `~/Applications/enka` by default
-- installs `bin/enka` and `Enka.app`
-- opens `Enka.app` and waits for Accessibility permission
+- installs to `~/Applications/kanae` by default
+- installs `bin/kanae` and `Kanae.app`
+- opens `Kanae.app` and waits for Accessibility permission
 - writes the LaunchAgent plist
 - starts/restarts the LaunchAgent after permission is granted
 - if permission is not granted before timeout, the installer exits with retry guidance
 
 During installation, macOS will ask you to grant Accessibility permission.
-Allow `Enka` in:
+Allow `Kanae` in:
 
 ```text
 System Settings > Privacy & Security > Accessibility
 ```
 
-You do not need to add the app manually. The installer opens `Enka.app` so it
+You do not need to add the app manually. The installer opens `Kanae.app` so it
 appears in the Accessibility list, then waits for permission before starting
 the LaunchAgent.
 
 If installation fails while waiting for Accessibility permission, rerun the installer:
 
 ```bash
-curl -fsSL https://enka.ultrahope.dev/install | sh
+curl -fsSL https://kanae.ultrahope.dev/install | sh
 ```
 
 If the files are already installed, you can rerun macOS registration directly:
 
 ```bash
-~/Applications/enka/bin/enka install
+~/Applications/kanae/bin/kanae install
 ```
 
 Accessibility permission itself cannot be granted automatically. That part is
@@ -113,17 +122,17 @@ controlled by macOS.
 
 ## Uninstall
 
-If you want to try another tool, Enka is easy to remove cleanly:
+If you want to try another tool, Kanae is easy to remove cleanly:
 
 ```bash
-enka uninstall
+kanae uninstall
 ```
 
-`enka uninstall` asks before stopping the LaunchAgent and removing the
+`kanae uninstall` asks before stopping the LaunchAgent and removing the
 LaunchAgent plist and installed files.
 
 macOS manages Accessibility permission separately. After uninstalling, open
-Accessibility settings, select `Enka`, then click the minus button below the
+Accessibility settings, select `Kanae`, then click the minus button below the
 app list:
 
 ```text
@@ -133,8 +142,8 @@ System Settings > Privacy & Security > Accessibility
 Manual cleanup, if needed:
 
 ```bash
-rm -rf "$HOME/Applications/enka"
-rm -rf "$HOME/.local/state/enka"
+rm -rf "$HOME/Applications/kanae"
+rm -rf "$HOME/.local/state/kanae"
 ```
 
 ## Why I Built This
@@ -144,29 +153,29 @@ like dedicated English/Japanese input-source keys when tapped by themselves.
 
 There are already good tools for this. Karabiner-Elements is powerful and
 widely used. Other focused open source apps also exist. My reason for building
-Enka was narrower: I wanted a tool whose behavior and implementation are both
-small enough to understand at a glance.
+Enka, which later became Kanae, was narrower: I wanted a tool whose behavior
+and implementation are both small enough to understand at a glance.
 
 For my use case, the ideal program does not need to be a general key remapper,
 does not need multiple switching modes, and does not need a preferences window.
 It only needs to observe Command key taps, cancel when the key is used as a
 modifier, and post the corresponding JIS 英数 / かな event.
 
-That constraint is the point of Enka. It is not meant to replace richer tools
+That constraint is the point of Kanae. It is not meant to replace richer tools
 for people who want richer tools. It is meant to be a small, readable daemon
 for this one input-source switching habit.
 
 ## Acknowledgements
 
-Enka was built after learning from prior work in this area:
+Enka and Kanae were built after learning from prior work in this area:
 
 - [Karabiner-Elements](https://karabiner-elements.pqrs.org/)
 - [cmd-eikana](https://github.com/iMasanari/cmd-eikana) and its
   [Apple Silicon fork](https://github.com/dominion525/cmd-eikana)
 - [enja-switcher](https://github.com/toshi-kuji/enja-switcher)
 
-Those projects helped clarify what I wanted Enka to be: a smaller tool with a
-deliberately narrower scope.
+Those projects helped clarify what I wanted this tool to be: a smaller tool
+with a deliberately narrower scope.
 
 ## CLI
 
@@ -180,51 +189,51 @@ swift build -c release
 Daemon and lifecycle commands:
 
 ```bash
-.build/debug/enka
-.build/debug/enka run
-.build/debug/enka install
-.build/debug/enka status
-.build/debug/enka restart
-.build/debug/enka stop
-.build/debug/enka uninstall
+.build/debug/kanae
+.build/debug/kanae run
+.build/debug/kanae install
+.build/debug/kanae status
+.build/debug/kanae restart
+.build/debug/kanae stop
+.build/debug/kanae uninstall
 ```
 
 Default paths:
 
-- LaunchAgent: `~/Library/LaunchAgents/dev.ultrahope.enka.plist`
-- install root: `~/Applications/enka`
-- state/logs: `~/.local/state/enka`
-- bindings: `~/.config/enka/config.json`
+- LaunchAgent: `~/Library/LaunchAgents/dev.ultrahope.kanae.plist`
+- install root: `~/Applications/kanae`
+- state/logs: `~/.local/state/kanae`
+- bindings: `~/.config/kanae/config.json`
 
 ## Installer Configuration
 
 Environment overrides:
 
 ```bash
-ENKA_VERSION=0.2.0 \
-ENKA_INSTALL_ROOT="$HOME/Applications/enka" \
-ENKA_INSTALL_ORIGIN="https://enka.ultrahope.dev" \
-ENKA_RELEASE_BASE_URL="https://github.com/toyamarinyon/enka/releases/download" \
-ENKA_BASE_URL="https://example.com/custom/path" \
-ENKA_SKIP_SETUP=1 \
-ENKA_SETUP_WAIT_ACCESSIBILITY_SECONDS=30 \
-sh -c "$(curl -fsSL https://enka.ultrahope.dev/install)"
+KANAE_VERSION=0.1.0 \
+KANAE_INSTALL_ROOT="$HOME/Applications/kanae" \
+KANAE_INSTALL_ORIGIN="https://kanae.ultrahope.dev" \
+KANAE_RELEASE_BASE_URL="https://github.com/toyamarinyon/kanae/releases/download" \
+KANAE_BASE_URL="https://example.com/custom/path" \
+KANAE_SKIP_SETUP=1 \
+KANAE_SETUP_WAIT_ACCESSIBILITY_SECONDS=30 \
+sh -c "$(curl -fsSL https://kanae.ultrahope.dev/install)"
 ```
 
 Notes:
 
-- `ENKA_SKIP_SETUP=1` skips automatic configuration after copying files.
-- `ENKA_SETUP_WAIT_ACCESSIBILITY_SECONDS` enables a custom timeout for the permission wait.
-- `ENKA_INSTALL_ORIGIN` sets the product install site used to resolve `latest.json`.
-- `ENKA_RELEASE_BASE_URL` sets the release download base; by default, artifacts are downloaded from GitHub Releases.
-- `ENKA_BASE_URL` sets a fully-resolved base path and bypasses the default release download convention.
+- `KANAE_SKIP_SETUP=1` skips automatic configuration after copying files.
+- `KANAE_SETUP_WAIT_ACCESSIBILITY_SECONDS` enables a custom timeout for the permission wait.
+- `KANAE_INSTALL_ORIGIN` sets the product install site used to resolve `latest.json`.
+- `KANAE_RELEASE_BASE_URL` sets the release download base; by default, artifacts are downloaded from GitHub Releases.
+- `KANAE_BASE_URL` sets a fully-resolved base path and bypasses the default release download convention.
 
 Development path overrides:
 
-- `ENKA_INSTALL_ROOT`: install root used by installation, status, and plist generation
-- `ENKA_LAUNCH_AGENT_DIR`: LaunchAgent directory (default: `~/Library/LaunchAgents`)
-- `ENKA_STATE_DIR`: state/log directory (default: `~/.local/state/enka`)
-- `ENKA_CONFIG_DIR`: bindings config directory (default: `~/.config/enka`)
+- `KANAE_INSTALL_ROOT`: install root used by installation, status, and plist generation
+- `KANAE_LAUNCH_AGENT_DIR`: LaunchAgent directory (default: `~/Library/LaunchAgents`)
+- `KANAE_STATE_DIR`: state/log directory (default: `~/.local/state/kanae`)
+- `KANAE_CONFIG_DIR`: bindings config directory (default: `~/.config/kanae`)
 
 ## Release Packaging
 
@@ -237,20 +246,20 @@ sh scripts/package-release.sh
 Distribution shape:
 
 ```text
-enka-v0.2.0-macos-arm64.tar.gz
-  Enka.app/
-  bin/enka
+kanae-v0.1.0-macos-arm64.tar.gz
+  Kanae.app/
+  bin/kanae
   README.md
   LICENSE (if present)
 ```
 
-`Enka.app` metadata is copied from `resources/Enka.app`.
+`Kanae.app` metadata is copied from `resources/Kanae.app`.
 
 Customize version/output:
 
 ```bash
-ENKA_VERSION=0.2.0 \
-ENKA_DIST_DIR=/tmp/enka-dist \
+KANAE_VERSION=0.1.0 \
+KANAE_DIST_DIR=/tmp/kanae-dist \
 sh scripts/package-release.sh
 ```
 
@@ -264,9 +273,9 @@ sh scripts/verify-release.sh
 Publish a GitHub Release:
 
 1. Open the `Release` workflow in GitHub Actions.
-2. Run it manually with a version such as `0.2.0` (without the leading `v`).
+2. Run it manually with a version such as `0.1.0`.
 3. The workflow builds and verifies the archive on macOS, then publishes
-   `v0.2.0` with the `.tar.gz` archive and matching `.sha256` file.
+   `kanae-v0.1.0` with the `.tar.gz` archive and matching `.sha256` file.
 
 GitHub Pages installer site:
 
@@ -278,4 +287,4 @@ docs/
 ```
 
 Configure GitHub Pages to publish from `main` / `docs`, then assign the custom
-domain `enka.ultrahope.dev`.
+domain `kanae.ultrahope.dev`.

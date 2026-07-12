@@ -2,17 +2,17 @@
 import PackageDescription
 
 let package = Package(
-    name: "enka",
+    name: "kanae",
     platforms: [
         .macOS(.v13),
     ],
     products: [
-        .executable(name: "enka", targets: ["Enka"]),
+        .executable(name: "kanae", targets: ["Kanae"]),
     ],
     targets: [
         .executableTarget(
-            name: "Enka",
-            path: "Sources/Enka"
+            name: "Kanae",
+            path: "Sources/Kanae"
         ),
     ]
 )

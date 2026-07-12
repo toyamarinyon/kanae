@@ -120,7 +120,7 @@ private func resolve(_ binding: Binding) -> BindingResolution {
 
 func loadBindings(
     fromFile path: String,
-    report: (String) -> Void = { writeStderr("enka: \($0)\n") }
+    report: (String) -> Void = { writeStderr("kanae: \($0)\n") }
 ) -> BindingLoadResult {
     let fm = FileManager.default
     guard fm.fileExists(atPath: path) else {
@@ -136,7 +136,7 @@ func loadBindings(
     do {
         guard let root = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               let bindings = root["bindings"] as? [Any] else {
-            throw NSError(domain: "EnkaConfig", code: 1, userInfo: [NSLocalizedDescriptionKey: "top level must contain a bindings array"])
+            throw NSError(domain: "KanaeConfig", code: 1, userInfo: [NSLocalizedDescriptionKey: "top level must contain a bindings array"])
         }
         entries = bindings
     } catch {

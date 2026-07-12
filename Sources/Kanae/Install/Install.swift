@@ -6,10 +6,10 @@ func printInstallSummary(plistPath: String) {
     print("  bindings:      \(configFilePath())")
     print("  plist path:    \(plistPath)")
     print("  app path:      \(installedAppPath())")
-    print("  enka binary:  \(installedBinaryPath())")
+    print("  kanae binary:  \(installedBinaryPath())")
 }
 
-func runOpenEnkaApp(logToSetup: ((String) -> Void)? = nil) throws {
+func runOpenKanaeApp(logToSetup: ((String) -> Void)? = nil) throws {
     logToSetup?("\(setupLogPrefix()) [setup] open command start: /usr/bin/open \(installedAppPath())")
     let process = Process()
     process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
@@ -179,7 +179,7 @@ func runInstall(
         print("Please run:")
         print("  open \(installedAppPath())")
         print("Then enable Accessibility and run:")
-        print("  enka restart")
+        print("  kanae restart")
         return
     }
 
@@ -188,7 +188,7 @@ func runInstall(
             print("Accessibility permission missing.")
             print("Manual open command: open \(installedAppPath())")
             print("Please grant Accessibility and then run:")
-            print("  enka restart")
+            print("  kanae restart")
             logToSetup(
                 "\(setupLogPrefix()) [setup] skipping start/restart: noOpen and app permission missing"
             )
@@ -196,7 +196,7 @@ func runInstall(
         }
 
         do {
-            try runOpenEnkaApp(logToSetup: logToSetup)
+            try runOpenKanaeApp(logToSetup: logToSetup)
         } catch {
             print("warning: failed to run open: \(error.localizedDescription)")
             print("Please run manually:")
@@ -225,7 +225,7 @@ func runInstall(
         print("Please run:")
         print("  open \(installedAppPath())")
         print("Then enable Accessibility and run:")
-        print("  enka restart")
+        print("  kanae restart")
         return
     }
 
@@ -238,7 +238,7 @@ func runInstall(
         print("Please run:")
         print("  open \(installedAppPath())")
         print("Then enable Accessibility and run:")
-        print("  enka restart")
+        print("  kanae restart")
         return
     }
 
@@ -247,7 +247,7 @@ func runInstall(
         printAccessibilityDone(replacingWait: displayedAccessibilityWait)
         print("Skipping launchctl because --no-start was specified.")
         print("Run:")
-        print("  enka restart")
+        print("  kanae restart")
         return
     }
 

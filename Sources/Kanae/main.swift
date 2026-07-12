@@ -23,7 +23,7 @@ do {
                     encoding: .utf8
                 )
             } catch {
-                writeStderr("enka: failed to write accessibility status result to \(resultFile): \(error.localizedDescription)\n")
+                writeStderr("kanae: failed to write accessibility status result to \(resultFile): \(error.localizedDescription)\n")
                 exit(1)
             }
         }
@@ -53,16 +53,16 @@ do {
         }
         runStopCommands(plistPath: plist)
     }
-} catch let error as EnkaError {
+} catch let error as KanaeError {
     if case .invalidArguments = error {
-        let progname = URL(fileURLWithPath: CommandLine.arguments.first ?? "enka").lastPathComponent
+        let progname = URL(fileURLWithPath: CommandLine.arguments.first ?? "kanae").lastPathComponent
         writeStderr(usage(progname: progname) + "\n")
-        writeStderr("enka: \(error.description)\n")
+        writeStderr("kanae: \(error.description)\n")
         exit(64)
     }
-    writeStderr("enka: \(error.description)\n")
+    writeStderr("kanae: \(error.description)\n")
     exit(1)
 } catch {
-    writeStderr("enka: \(error.localizedDescription)\n")
+    writeStderr("kanae: \(error.localizedDescription)\n")
     exit(1)
 }

@@ -110,17 +110,17 @@ func createEventTap(state: LauncherState) throws -> CFMachPort {
         tap: .cgSessionEventTap, place: .headInsertEventTap, options: .defaultTap,
         eventsOfInterest: CGEventMask(mask), callback: callback,
         userInfo: UnsafeMutableRawPointer(Unmanaged.passUnretained(state).toOpaque())
-    ) else { throw EnkaError.eventTapCreationFailed }
+    ) else { throw KanaeError.eventTapCreationFailed }
     return eventTap
 }
 
 func runDaemon() throws {
     let result = loadBindings(fromFile: configFilePath())
     let state = LauncherState(bindings: result.bindings)
-    guard checkAccessibilityPermission() else { throw EnkaError.accessibilityPermissionRequired }
+    guard checkAccessibilityPermission() else { throw KanaeError.accessibilityPermissionRequired }
     let eventTap = try createEventTap(state: state)
     guard let runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0) else {
-        throw EnkaError.runLoopSourceCreationFailed
+        throw KanaeError.runLoopSourceCreationFailed
     }
     CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
     CGEvent.tapEnable(tap: eventTap, enable: true)

@@ -19,19 +19,19 @@ func userHomeDirectory() -> String {
 }
 
 func defaultInstallRoot() -> String {
-    envOverride("ENKA_INSTALL_ROOT") ?? userHomeDirectory().appending("/Applications/enka")
+    envOverride("KANAE_INSTALL_ROOT") ?? userHomeDirectory().appending("/Applications/kanae")
 }
 
 func defaultLaunchAgentDirectory() -> String {
-    envOverride("ENKA_LAUNCH_AGENT_DIR") ?? userHomeDirectory().appending("/Library/LaunchAgents")
+    envOverride("KANAE_LAUNCH_AGENT_DIR") ?? userHomeDirectory().appending("/Library/LaunchAgents")
 }
 
 func stateDirectoryPath() -> String {
-    envOverride("ENKA_STATE_DIR") ?? userHomeDirectory().appending("/.local/state/enka")
+    envOverride("KANAE_STATE_DIR") ?? userHomeDirectory().appending("/.local/state/kanae")
 }
 
 func configDirectoryPath() -> String {
-    envOverride("ENKA_CONFIG_DIR") ?? userHomeDirectory().appending("/.config/enka")
+    envOverride("KANAE_CONFIG_DIR") ?? userHomeDirectory().appending("/.config/kanae")
 }
 
 func configFilePath() -> String {
@@ -39,11 +39,11 @@ func configFilePath() -> String {
 }
 
 func standardOutputLogPath() -> String {
-    stateDirectoryPath().appending("/enka.log")
+    stateDirectoryPath().appending("/kanae.log")
 }
 
 func standardErrorLogPath() -> String {
-    stateDirectoryPath().appending("/enka.err.log")
+    stateDirectoryPath().appending("/kanae.err.log")
 }
 
 func setupLogPath() -> String {
@@ -70,11 +70,11 @@ func writeSetupLog(_ path: String, _ message: String) {
 }
 
 func installedAppPath() -> String {
-    defaultInstallRoot().appending("/Enka.app")
+    defaultInstallRoot().appending("/Kanae.app")
 }
 
 func installedAppExecutablePath() -> String {
-    installedAppPath().appending("/Contents/MacOS/Enka")
+    installedAppPath().appending("/Contents/MacOS/Kanae")
 }
 
 func installedAppInfoPlistPath() -> String {
@@ -82,15 +82,15 @@ func installedAppInfoPlistPath() -> String {
 }
 
 func installedBinaryPath() -> String {
-    defaultInstallRoot().appending("/bin/enka")
+    defaultInstallRoot().appending("/bin/kanae")
 }
 
 func launchAgentPlistPath() -> String {
-    defaultLaunchAgentDirectory().appending("/dev.ultrahope.enka.plist")
+    defaultLaunchAgentDirectory().appending("/dev.ultrahope.kanae.plist")
 }
 
 func launchctlLabel() -> String {
-    "dev.ultrahope.enka"
+    "dev.ultrahope.kanae"
 }
 
 func launchctlDomain() -> String {

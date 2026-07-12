@@ -2,12 +2,12 @@
 
 set -eu
 
-ENKA_VERSION=${ENKA_VERSION:-}
-ENKA_INSTALL_ORIGIN=${ENKA_INSTALL_ORIGIN:-https://enka.ultrahope.dev}
-ENKA_RELEASE_BASE_URL=${ENKA_RELEASE_BASE_URL:-https://github.com/toyamarinyon/enka/releases/download}
-ENKA_INSTALL_ROOT=${ENKA_INSTALL_ROOT:-"$HOME/Applications/enka"}
-ENKA_SKIP_SETUP=${ENKA_SKIP_SETUP:-0}
-ENKA_SETUP_WAIT_ACCESSIBILITY_SECONDS=${ENKA_SETUP_WAIT_ACCESSIBILITY_SECONDS:-}
+KANAE_VERSION=${KANAE_VERSION:-}
+KANAE_INSTALL_ORIGIN=${KANAE_INSTALL_ORIGIN:-https://kanae.ultrahope.dev}
+KANAE_RELEASE_BASE_URL=${KANAE_RELEASE_BASE_URL:-https://github.com/toyamarinyon/kanae/releases/download}
+KANAE_INSTALL_ROOT=${KANAE_INSTALL_ROOT:-"$HOME/Applications/kanae"}
+KANAE_SKIP_SETUP=${KANAE_SKIP_SETUP:-0}
+KANAE_SETUP_WAIT_ACCESSIBILITY_SECONDS=${KANAE_SETUP_WAIT_ACCESSIBILITY_SECONDS:-}
 
 step() {
   if [ -t 1 ]; then
@@ -25,11 +25,11 @@ done_step() {
   fi
 }
 
-if [ -z "$ENKA_VERSION" ]; then
-  LATEST_JSON=$(curl -fsSL "${ENKA_INSTALL_ORIGIN%/}/latest.json")
-  ENKA_VERSION=$(printf '%s' "$LATEST_JSON" | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)
-  if [ -z "$ENKA_VERSION" ]; then
-    echo "error: could not resolve latest enka version" >&2
+if [ -z "$KANAE_VERSION" ]; then
+  LATEST_JSON=$(curl -fsSL "${KANAE_INSTALL_ORIGIN%/}/latest.json")
+  KANAE_VERSION=$(printf '%s' "$LATEST_JSON" | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)
+  if [ -z "$KANAE_VERSION" ]; then
+    echo "error: could not resolve latest kanae version" >&2
     exit 1
   fi
 fi
@@ -43,10 +43,10 @@ fi
 ARCH=$(uname -m)
 case "$ARCH" in
   arm64)
-    ENKA_PLATFORM="macos-arm64"
+    KANAE_PLATFORM="macos-arm64"
     ;;
   x86_64)
-    ENKA_PLATFORM="macos-x86_64"
+    KANAE_PLATFORM="macos-x86_64"
     ;;
   *)
     echo "error: unsupported architecture: $ARCH" >&2
@@ -54,11 +54,11 @@ case "$ARCH" in
     ;;
 esac
 
-ARCHIVE_NAME="enka-v${ENKA_VERSION}-${ENKA_PLATFORM}.tar.gz"
-if [ -n "${ENKA_BASE_URL:-}" ]; then
-  ARCHIVE_URL="${ENKA_BASE_URL%/}/${ARCHIVE_NAME}"
+ARCHIVE_NAME="kanae-v${KANAE_VERSION}-${KANAE_PLATFORM}.tar.gz"
+if [ -n "${KANAE_BASE_URL:-}" ]; then
+  ARCHIVE_URL="${KANAE_BASE_URL%/}/${ARCHIVE_NAME}"
 else
-  ARCHIVE_URL="${ENKA_RELEASE_BASE_URL%/}/v${ENKA_VERSION}/${ARCHIVE_NAME}"
+  ARCHIVE_URL="${KANAE_RELEASE_BASE_URL%/}/kanae-v${KANAE_VERSION}/${ARCHIVE_NAME}"
 fi
 CHECKSUM_URL="${ARCHIVE_URL}.sha256"
 
@@ -68,7 +68,7 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 ARCHIVE_PATH="$TMP_DIR/$ARCHIVE_NAME"
 CHECKSUM_PATH="$TMP_DIR/$ARCHIVE_NAME.sha256"
 
-echo "Installing enka $ENKA_VERSION ($ENKA_PLATFORM)"
+echo "Installing kanae $KANAE_VERSION ($KANAE_PLATFORM)"
 step "Downloading $ARCHIVE_NAME"
 curl -fsSL "$ARCHIVE_URL" -o "$ARCHIVE_PATH"
 done_step "Downloaded $ARCHIVE_NAME"
@@ -87,46 +87,46 @@ step "Extracting archive"
 tar -xzf "$ARCHIVE_PATH" -C "$EXTRACT_DIR"
 done_step "Extracted archive"
 
-if [ ! -x "$EXTRACT_DIR/bin/enka" ]; then
+if [ ! -x "$EXTRACT_DIR/bin/kanae" ]; then
   echo "error: extracted archive does not contain expected binary" >&2
   exit 1
 fi
-if [ ! -x "$EXTRACT_DIR/Enka.app/Contents/MacOS/Enka" ] || [ ! -f "$EXTRACT_DIR/Enka.app/Contents/Info.plist" ]; then
+if [ ! -x "$EXTRACT_DIR/Kanae.app/Contents/MacOS/Kanae" ] || [ ! -f "$EXTRACT_DIR/Kanae.app/Contents/Info.plist" ]; then
   echo "error: extracted archive does not contain expected app bundle" >&2
   exit 1
 fi
 
 step "Installing files"
-mkdir -p "$ENKA_INSTALL_ROOT/bin"
-cp "$EXTRACT_DIR/bin/enka" "$ENKA_INSTALL_ROOT/bin/enka"
-mkdir -p "$ENKA_INSTALL_ROOT"
-rm -rf "$ENKA_INSTALL_ROOT/Enka.app"
-cp -R "$EXTRACT_DIR/Enka.app" "$ENKA_INSTALL_ROOT/"
+mkdir -p "$KANAE_INSTALL_ROOT/bin"
+cp "$EXTRACT_DIR/bin/kanae" "$KANAE_INSTALL_ROOT/bin/kanae"
+mkdir -p "$KANAE_INSTALL_ROOT"
+rm -rf "$KANAE_INSTALL_ROOT/Kanae.app"
+cp -R "$EXTRACT_DIR/Kanae.app" "$KANAE_INSTALL_ROOT/"
 
-if [ ! -x "$ENKA_INSTALL_ROOT/bin/enka" ] || [ ! -x "$ENKA_INSTALL_ROOT/Enka.app/Contents/MacOS/Enka" ] || [ ! -f "$ENKA_INSTALL_ROOT/Enka.app/Contents/Info.plist" ]; then
+if [ ! -x "$KANAE_INSTALL_ROOT/bin/kanae" ] || [ ! -x "$KANAE_INSTALL_ROOT/Kanae.app/Contents/MacOS/Kanae" ] || [ ! -f "$KANAE_INSTALL_ROOT/Kanae.app/Contents/Info.plist" ]; then
   echo "error: installed files are missing or not runnable" >&2
   exit 1
 fi
-done_step "Installed $ENKA_INSTALL_ROOT"
+done_step "Installed $KANAE_INSTALL_ROOT"
 
-if [ "$ENKA_SKIP_SETUP" = "1" ]; then
+if [ "$KANAE_SKIP_SETUP" = "1" ]; then
   echo "✓ Setup skipped"
-  echo "Next: $ENKA_INSTALL_ROOT/bin/enka install"
+  echo "Next: $KANAE_INSTALL_ROOT/bin/kanae install"
   exit 0
 fi
 
-if [ -n "$ENKA_SETUP_WAIT_ACCESSIBILITY_SECONDS" ]; then
-  if ! "$ENKA_INSTALL_ROOT/bin/enka" install --wait-accessibility "$ENKA_SETUP_WAIT_ACCESSIBILITY_SECONDS"; then
-    echo "error: install failed. run \"$ENKA_INSTALL_ROOT/bin/enka install --wait-accessibility $ENKA_SETUP_WAIT_ACCESSIBILITY_SECONDS\" to retry" >&2
+if [ -n "$KANAE_SETUP_WAIT_ACCESSIBILITY_SECONDS" ]; then
+  if ! "$KANAE_INSTALL_ROOT/bin/kanae" install --wait-accessibility "$KANAE_SETUP_WAIT_ACCESSIBILITY_SECONDS"; then
+    echo "error: install failed. run \"$KANAE_INSTALL_ROOT/bin/kanae install --wait-accessibility $KANAE_SETUP_WAIT_ACCESSIBILITY_SECONDS\" to retry" >&2
     exit 1
   fi
 else
-  if ! "$ENKA_INSTALL_ROOT/bin/enka" install; then
-    echo "error: install failed. run \"$ENKA_INSTALL_ROOT/bin/enka install\" to retry" >&2
+  if ! "$KANAE_INSTALL_ROOT/bin/kanae" install; then
+    echo "error: install failed. run \"$KANAE_INSTALL_ROOT/bin/kanae install\" to retry" >&2
     exit 1
   fi
 fi
 
 echo ""
-echo "✓ Setup complete! Enka bindings are ready."
-echo "  Document: https://github.com/toyamarinyon/enka"
+echo "✓ Setup complete! Kanae bindings are ready."
+echo "  Document: https://github.com/toyamarinyon/kanae"

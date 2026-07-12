@@ -1,6 +1,6 @@
 import Foundation
 
-enum EnkaError: Error, CustomStringConvertible {
+enum KanaeError: Error, CustomStringConvertible {
     case invalidArguments
     case accessibilityPermissionRequired
     case eventTapCreationFailed
@@ -32,7 +32,7 @@ func usage(progname: String) -> String {
     """
 }
 
-enum EnkaCommand {
+enum KanaeCommand {
     case run
     case status
     case accessibilityStatus(resultFile: String?)
@@ -46,20 +46,20 @@ enum EnkaCommand {
     case stop
 }
 
-func parseArguments(_ arguments: [String]) throws -> EnkaCommand {
+func parseArguments(_ arguments: [String]) throws -> KanaeCommand {
     let args = Array(arguments.dropFirst())
 
     if args.isEmpty {
         return .run
     }
 
-    guard let command = args.first else { throw EnkaError.invalidArguments }
+    guard let command = args.first else { throw KanaeError.invalidArguments }
 
     if command == "run" {
         if args.count == 1 {
             return .run
         }
-        throw EnkaError.invalidArguments
+        throw KanaeError.invalidArguments
     }
 
     switch command {
@@ -75,29 +75,29 @@ func parseArguments(_ arguments: [String]) throws -> EnkaCommand {
             switch flag {
             case "--no-open":
                 if noOpen {
-                    throw EnkaError.invalidArguments
+                    throw KanaeError.invalidArguments
                 }
                 noOpen = true
             case "--no-start":
                 if noStart {
-                    throw EnkaError.invalidArguments
+                    throw KanaeError.invalidArguments
                 }
                 noStart = true
             case "--wait-accessibility":
                 if didSetWaitAccessibility {
-                    throw EnkaError.invalidArguments
+                    throw KanaeError.invalidArguments
                 }
                 if index + 1 >= args.count {
-                    throw EnkaError.invalidArguments
+                    throw KanaeError.invalidArguments
                 }
                 guard let value = Int(args[index + 1]), value >= 0 else {
-                    throw EnkaError.invalidArguments
+                    throw KanaeError.invalidArguments
                 }
                 waitAccessibilitySeconds = value
                 didSetWaitAccessibility = true
                 index += 1
             default:
-                throw EnkaError.invalidArguments
+                throw KanaeError.invalidArguments
             }
             index += 1
         }
@@ -112,25 +112,25 @@ func parseArguments(_ arguments: [String]) throws -> EnkaCommand {
             return .accessibilityStatus(resultFile: nil)
         }
         guard args.count == 3 else {
-            throw EnkaError.invalidArguments
+            throw KanaeError.invalidArguments
         }
         guard args[1] == "--result-file" else {
-            throw EnkaError.invalidArguments
+            throw KanaeError.invalidArguments
         }
         return .accessibilityStatus(resultFile: args[2])
     case "uninstall":
-        guard args.count == 1 else { throw EnkaError.invalidArguments }
+        guard args.count == 1 else { throw KanaeError.invalidArguments }
         return .uninstall
     case "status":
-        guard args.count == 1 else { throw EnkaError.invalidArguments }
+        guard args.count == 1 else { throw KanaeError.invalidArguments }
         return .status
     case "restart":
-        guard args.count == 1 else { throw EnkaError.invalidArguments }
+        guard args.count == 1 else { throw KanaeError.invalidArguments }
         return .restart
     case "stop":
-        guard args.count == 1 else { throw EnkaError.invalidArguments }
+        guard args.count == 1 else { throw KanaeError.invalidArguments }
         return .stop
     default:
-        throw EnkaError.invalidArguments
+        throw KanaeError.invalidArguments
     }
 }

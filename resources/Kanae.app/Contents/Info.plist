@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
   <key>CFBundleDisplayName</key>
-  <string>Enka</string>
+  <string>Kanae</string>
   <key>CFBundleExecutable</key>
-  <string>Enka</string>
+  <string>Kanae</string>
   <key>CFBundleIdentifier</key>
-  <string>dev.ultrahope.enka</string>
+  <string>dev.ultrahope.kanae</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>LSUIElement</key>

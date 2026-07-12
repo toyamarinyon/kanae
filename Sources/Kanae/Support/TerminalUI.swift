@@ -27,10 +27,10 @@ func printDone(_ message: String) {
 func printAccessibilityWait() {
     print("→ Waiting for Accessibility permission")
     if isTTY {
-        print("  Enka needs Accessibility to observe Command key taps.", terminator: "")
+        print("  Kanae needs Accessibility to observe Command key taps.", terminator: "")
         fflush(stdout)
     } else {
-        print("  Enka needs Accessibility to observe Command key taps.")
+        print("  Kanae needs Accessibility to observe Command key taps.")
     }
 }
 

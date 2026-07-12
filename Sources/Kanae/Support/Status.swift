@@ -42,10 +42,10 @@ func printStatus() {
     case .none:
         if !fm.fileExists(atPath: appPath) {
             print("Accessibility: unavailable (app missing)")
-            print("next action: run enka install")
+            print("next action: run kanae install")
         } else if !fm.fileExists(atPath: appExecutablePath) {
             print("Accessibility: unavailable (app executable missing)")
-            print("next action: run enka install")
+            print("next action: run kanae install")
         } else {
             print("Accessibility: unavailable (could not verify)")
             print("next action: open \(appPath) and enable Accessibility")

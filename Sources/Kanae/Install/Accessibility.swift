@@ -10,7 +10,7 @@ func runAccessibilityStatusSubcommand(
     if FileManager.default.fileExists(atPath: appBundlePath) {
         let logPrefix = setupLogPrefix()
         let tempFile = URL(fileURLWithPath: NSTemporaryDirectory())
-            .appendingPathComponent("enka_accessibility_status_\(UUID().uuidString).txt")
+            .appendingPathComponent("kanae_accessibility_status_\(UUID().uuidString).txt")
         defer {
             try? FileManager.default.removeItem(at: tempFile)
         }

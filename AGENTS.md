@@ -17,9 +17,9 @@ has been retried with writable caches. Use temporary paths and disable SwiftPM's
 nested sandbox:
 
 ```sh
-CLANG_MODULE_CACHE_PATH=/tmp/enka-clang-cache \
-SWIFTPM_MODULECACHE_OVERRIDE=/tmp/enka-swiftpm-cache \
-swift build --disable-sandbox --scratch-path /tmp/enka-build
+CLANG_MODULE_CACHE_PATH=/tmp/kanae-clang-cache \
+SWIFTPM_MODULECACHE_OVERRIDE=/tmp/kanae-swiftpm-cache \
+swift build --disable-sandbox --scratch-path /tmp/kanae-build
 ```
 
 Do not set `SDKROOT` unless a retry with writable caches still demonstrates a

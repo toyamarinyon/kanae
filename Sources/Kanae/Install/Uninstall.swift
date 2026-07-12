@@ -13,7 +13,7 @@ func isSafeInstallRootPath(_ path: String) -> Bool {
         return false
     }
 
-    guard (normalized as NSString).pathComponents.last == "enka" else {
+    guard (normalized as NSString).pathComponents.last == "kanae" else {
         return false
     }
 
@@ -27,7 +27,7 @@ func runUninstall() {
     let installRoot = defaultInstallRoot()
     let hasPlist = fm.fileExists(atPath: plistPath)
 
-    let shouldUninstall = confirm("Uninstall Enka and remove installed files? [y/N]")
+    let shouldUninstall = confirm("Uninstall Kanae and remove installed files? [y/N]")
     if !shouldUninstall {
         print("Uninstall cancelled.")
         return
@@ -73,6 +73,6 @@ func runUninstall() {
     print("")
     print("✓ Uninstall complete")
     print("  Accessibility permission is managed by macOS and may remain listed.")
-    print("  To remove it manually, open Accessibility settings, select Enka,")
+    print("  To remove it manually, open Accessibility settings, select Kanae,")
     print("  then click the minus button below the app list.")
 }
