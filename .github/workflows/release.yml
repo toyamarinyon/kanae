@@ -66,10 +66,10 @@ jobs:
           set -eu
           tag="kanae-v$KANAE_VERSION"
           notes_file="$(mktemp)"
-          cat > "$notes_file" <<EOF
-          Release artifacts for Kanae $KANAE_VERSION.
+          cp RELEASE_NOTES.md "$notes_file"
+          cat >> "$notes_file" <<EOF
 
-          Install:
+          ## Install
 
           \`\`\`sh
           curl -fsSL https://kanae.ultrahope.dev/install | sh

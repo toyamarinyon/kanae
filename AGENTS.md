@@ -25,3 +25,23 @@ swift build --disable-sandbox --scratch-path /tmp/kanae-build
 Do not set `SDKROOT` unless a retry with writable caches still demonstrates a
 real SDK compatibility problem. The ordinary default macOS SDK is expected to
 build this project successfully.
+
+## Checking macOS Privacy Permissions in Codex
+
+Do not trust Accessibility/TCC results obtained while running Kanae inside
+Codex's filesystem sandbox. A sandboxed invocation such as
+`~/Applications/kanae/bin/kanae status` can report
+`Accessibility: missing` even when the same command run from the user's normal
+terminal correctly reports `Accessibility: granted`.
+
+When checking installed Kanae permission state, run the command outside the
+Codex sandbox with escalated execution, or ask the user to run it in their
+normal terminal:
+
+```sh
+~/Applications/kanae/bin/kanae status
+```
+
+Treat the non-sandboxed result as authoritative. Do not reset TCC permissions,
+change code signing, reinstall Kanae, or ask the user to repeatedly remove and
+re-add the Accessibility entry based only on a sandboxed `missing` result.

@@ -7,6 +7,27 @@ key presses. The installer creates
 Command → Kana behavior when no configuration exists. Existing configuration
 files are never overwritten.
 
+## Highlights
+
+- Observe keyboard events with a passive event tap. Kanae can no longer modify
+  or discard the original event stream while detecting configured triggers.
+- Add `kanae run --verbose` for foreground diagnostics. Verbose mode reports
+  Command-key events, binding decisions, and synthetic key posts without
+  changing normal LaunchAgent logging.
+- Keep the existing Accessibility-only permission model. Input Monitoring is
+  not required.
+
+To diagnose event handling, temporarily stop the LaunchAgent and run Kanae in
+the foreground:
+
+```sh
+kanae stop
+kanae run --verbose
+```
+
+Press `Control-C` when finished, then restore background operation with
+`kanae restart`.
+
 ## Required migration from Enka 0.2.0
 
 Uninstall Enka before installing Kanae so their LaunchAgents do not run at the

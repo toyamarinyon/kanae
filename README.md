@@ -191,12 +191,31 @@ Daemon and lifecycle commands:
 ```bash
 .build/debug/kanae
 .build/debug/kanae run
+.build/debug/kanae run --verbose
 .build/debug/kanae install
 .build/debug/kanae status
 .build/debug/kanae restart
 .build/debug/kanae stop
 .build/debug/kanae uninstall
 ```
+
+To diagnose event handling without the LaunchAgent running, stop the agent and
+run Kanae in the foreground with verbose logging:
+
+```bash
+kanae stop
+kanae run --verbose
+```
+
+Press `Control-C` when finished, then restore normal background operation:
+
+```bash
+kanae restart
+```
+
+Verbose mode logs Command-key events, binding decisions, and synthetic key
+posts to standard error. Normal runs, including LaunchAgent runs, do not emit
+these event diagnostics.
 
 Default paths:
 
