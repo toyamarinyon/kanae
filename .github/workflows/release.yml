@@ -4,14 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Kanae version, for example 0.1.0
+        description: Kanae version, for example 0.1.1
         required: true
-        default: 0.1.0
-      prerelease:
-        description: Mark the GitHub Release as a prerelease
-        required: true
-        type: boolean
-        default: false
 
 permissions:
   contents: write
@@ -30,6 +24,10 @@ jobs:
           KANAE_VERSION: ${{ inputs.version }}
         run: |
           set -eu
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "releases must run from main, got: $GITHUB_REF" >&2
+            exit 1
+          fi
           case "$KANAE_VERSION" in
             v*)
               echo "version must not include the leading v: $KANAE_VERSION" >&2
@@ -40,6 +38,16 @@ jobs:
               exit 1
               ;;
           esac
+          expected_heading="# Kanae $KANAE_VERSION"
+          actual_heading="$(head -n 1 RELEASE_NOTES.md)"
+          if [ "$actual_heading" != "$expected_heading" ]; then
+            echo "RELEASE_NOTES.md heading must be: $expected_heading" >&2
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/kanae-v$KANAE_VERSION" >/dev/null 2>&1; then
+            echo "release tag already exists: kanae-v$KANAE_VERSION" >&2
+            exit 1
+          fi
 
       - name: Show toolchain
         run: |
@@ -61,29 +69,44 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           KANAE_VERSION: ${{ inputs.version }}
-          KANAE_PRERELEASE: ${{ inputs.prerelease }}
         run: |
           set -eu
           tag="kanae-v$KANAE_VERSION"
           notes_file="$(mktemp)"
-          cat > "$notes_file" <<EOF
-          Release artifacts for Kanae $KANAE_VERSION.
+          cp RELEASE_NOTES.md "$notes_file"
+          cat >> "$notes_file" <<EOF
 
-          Install:
+          ## Install
 
           \`\`\`sh
           curl -fsSL https://kanae.ultrahope.dev/install | sh
           \`\`\`
           EOF
 
-          prerelease_args=""
-          if [ "$KANAE_PRERELEASE" = "true" ]; then
-            prerelease_args="--prerelease"
-          fi
-
           gh release create "$tag" \
             dist/kanae-v"$KANAE_VERSION"-*.tar.gz \
             dist/kanae-v"$KANAE_VERSION"-*.tar.gz.sha256 \
             --title "Kanae $KANAE_VERSION" \
-            --notes-file "$notes_file" \
-            $prerelease_args
+            --notes-file "$notes_file"
+
+      - name: Publish installer version
+        env:
+          KANAE_VERSION: ${{ inputs.version }}
+        run: |
+          set -eu
+          git fetch origin main
+          git checkout -B publish-latest origin/main
+          cat > docs/latest.json <<EOF
+          {
+            "version": "$KANAE_VERSION"
+          }
+          EOF
+          if git diff --quiet -- docs/latest.json; then
+            echo "docs/latest.json already points to $KANAE_VERSION"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/latest.json
+          git commit -m "Publish Kanae $KANAE_VERSION"
+          git push origin HEAD:main

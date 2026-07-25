@@ -23,7 +23,7 @@ enum KanaeError: Error, CustomStringConvertible {
 func usage(progname: String) -> String {
     """
     Usage:
-      \(progname) [run]
+      \(progname) [run [--verbose]]
       \(progname) install [--no-open] [--no-start] [--wait-accessibility <seconds>]
       \(progname) status
       \(progname) uninstall
@@ -33,7 +33,7 @@ func usage(progname: String) -> String {
 }
 
 enum KanaeCommand {
-    case run
+    case run(verbose: Bool)
     case status
     case accessibilityStatus(resultFile: String?)
     case install(
@@ -50,14 +50,17 @@ func parseArguments(_ arguments: [String]) throws -> KanaeCommand {
     let args = Array(arguments.dropFirst())
 
     if args.isEmpty {
-        return .run
+        return .run(verbose: false)
     }
 
     guard let command = args.first else { throw KanaeError.invalidArguments }
 
     if command == "run" {
         if args.count == 1 {
-            return .run
+            return .run(verbose: false)
+        }
+        if args.count == 2, args[1] == "--verbose" {
+            return .run(verbose: true)
         }
         throw KanaeError.invalidArguments
     }

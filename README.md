@@ -191,12 +191,31 @@ Daemon and lifecycle commands:
 ```bash
 .build/debug/kanae
 .build/debug/kanae run
+.build/debug/kanae run --verbose
 .build/debug/kanae install
 .build/debug/kanae status
 .build/debug/kanae restart
 .build/debug/kanae stop
 .build/debug/kanae uninstall
 ```
+
+To diagnose event handling without the LaunchAgent running, stop the agent and
+run Kanae in the foreground with verbose logging:
+
+```bash
+kanae stop
+kanae run --verbose
+```
+
+Press `Control-C` when finished, then restore normal background operation:
+
+```bash
+kanae restart
+```
+
+Verbose mode logs Command-key events, binding decisions, and synthetic key
+posts to standard error. Normal runs, including LaunchAgent runs, do not emit
+these event diagnostics.
 
 Default paths:
 
@@ -235,18 +254,75 @@ Development path overrides:
 - `KANAE_STATE_DIR`: state/log directory (default: `~/.local/state/kanae`)
 - `KANAE_CONFIG_DIR`: bindings config directory (default: `~/.config/kanae`)
 
-## Release Packaging
+## Release Process
 
-Build a release archive locally:
+Kanae publishes stable releases from `main`. Pull requests run the same package
+and installer verification used by the release workflow, so publishing does
+not introduce a separate untested build path.
+
+### 1. Prepare the release pull request
+
+Update `RELEASE_NOTES.md` so its first line contains the exact next version:
+
+```text
+# Kanae 0.1.1
+```
+
+Keep `docs/latest.json` on the currently published version. The release
+workflow updates it only after the corresponding GitHub Release exists.
+
+To reproduce the pull-request check locally:
 
 ```bash
-sh scripts/package-release.sh
+KANAE_VERSION=0.1.1 sh scripts/package-release.sh
+KANAE_VERSION=0.1.1 sh scripts/verify-release.sh
 ```
+
+Open a pull request and merge it only after the `Build and verify release`
+check passes.
+
+### 2. Publish the stable release
+
+1. Open the `Release` workflow in GitHub Actions.
+2. Select `main`.
+3. Enter the version from `RELEASE_NOTES.md` without a leading `v`, such as
+   `0.1.1`.
+4. Run the workflow.
+
+The workflow refuses to publish from another branch, with a mismatched release
+notes heading, or over an existing `kanae-v<version>` tag. It then:
+
+1. builds the production binary on macOS;
+2. creates and verifies the release archive;
+3. publishes the stable GitHub Release and checksum;
+4. commits the new version to `docs/latest.json` as `github-actions[bot]`;
+5. pushes that commit to `main`, allowing GitHub Pages to update the hosted
+   installer.
+
+The workflow does not publish prereleases. Test release behavior in the pull
+request and publish a stable version only after those checks pass.
+
+### 3. Verify the public release
+
+Confirm the GitHub Release, installer metadata, and downloadable installer:
+
+```bash
+gh release view kanae-v0.1.1
+curl -fsSL https://kanae.ultrahope.dev/latest.json
+curl -fsSL https://kanae.ultrahope.dev/install | \
+  KANAE_VERSION=0.1.1 KANAE_SKIP_SETUP=1 sh
+```
+
+The final command updates the installed files but skips Accessibility setup and
+LaunchAgent changes. Run `~/Applications/kanae/bin/kanae install` afterward
+when setup or restart is desired.
+
+### Release archive
 
 Distribution shape:
 
 ```text
-kanae-v0.1.0-macos-arm64.tar.gz
+kanae-v0.1.1-macos-arm64.tar.gz
   Kanae.app/
   bin/kanae
   README.md
@@ -255,27 +331,13 @@ kanae-v0.1.0-macos-arm64.tar.gz
 
 `Kanae.app` metadata is copied from `resources/Kanae.app`.
 
-Customize version/output:
+Customize the local output directory:
 
 ```bash
-KANAE_VERSION=0.1.0 \
+KANAE_VERSION=0.1.1 \
 KANAE_DIST_DIR=/tmp/kanae-dist \
 sh scripts/package-release.sh
 ```
-
-Verify local release artifacts:
-
-```bash
-sh scripts/package-release.sh
-sh scripts/verify-release.sh
-```
-
-Publish a GitHub Release:
-
-1. Open the `Release` workflow in GitHub Actions.
-2. Run it manually with a version such as `0.1.0`.
-3. The workflow builds and verifies the archive on macOS, then publishes
-   `kanae-v0.1.0` with the `.tar.gz` archive and matching `.sha256` file.
 
 GitHub Pages installer site:
 
