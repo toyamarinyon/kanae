@@ -11,8 +11,8 @@ do {
     let command = try parseArguments(arguments)
 
     switch command {
-    case .run:
-        try runDaemon()
+    case let .run(verbose):
+        try runDaemon(verbose: verbose)
     case let .accessibilityStatus(resultFile):
         let isGranted = checkAccessibilityPermission()
         if let resultFile {
