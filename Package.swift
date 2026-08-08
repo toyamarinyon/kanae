@@ -14,5 +14,20 @@ let package = Package(
             name: "Kanae",
             path: "Sources/Kanae"
         ),
+        .plugin(
+            name: "KanaeBuildDevPlugin",
+            capability: .command(
+                intent: .custom(
+                    verb: "kanae-build-dev",
+                    description: "Build Kanae's debug app bundle for local development."
+                ),
+                permissions: [
+                    .writeToPackageDirectory(
+                        reason: "Create the development app bundle in .build/dev."
+                    ),
+                ]
+            ),
+            path: "Plugins/KanaeBuildDevPlugin"
+        ),
     ]
 )
