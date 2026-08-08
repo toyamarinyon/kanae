@@ -1,29 +1,29 @@
-# Kanae 0.1.1
+# Kanae 0.1.2
 
-This release makes Kanae's keyboard observation safer and adds an opt-in
-diagnostic mode. Existing bindings and the Accessibility-only permission model
-remain unchanged.
+This release adds a SwiftPM-centered development workflow for building,
+signing, and running Kanae locally without introducing an Xcode project or
+weakening the SwiftPM plugin sandbox. The installed application and existing
+release workflow remain unchanged.
 
 ## Highlights
 
-- Observe keyboard events with a passive event tap. Kanae can no longer modify
-  or discard the original event stream while detecting configured triggers.
-- Add `kanae run --verbose` for foreground diagnostics. Verbose mode reports
-  Command-key events, binding decisions, and synthetic key posts without
-  changing normal LaunchAgent logging.
-- Keep the existing Accessibility-only permission model. Input Monitoring is
-  not required.
+- Add `./dev` as the one-command entry point for a debug build, local signing,
+  Accessibility setup, foreground logs, and `Control-C` shutdown.
+- Build the stable `.build/dev/KanaeDev.app` bundle with a sandboxed SwiftPM
+  command plugin that does not access the Keychain or launch applications.
+- Sign and register the development app after the plugin finishes, keeping
+  Accessibility permission scoped to `KanaeDev` instead of the terminal app.
+- Support ad hoc signing by default and a fixed local certificate through
+  `KANAE_CODE_SIGN_IDENTITY` for stable permission across rebuilds.
 
-To diagnose event handling, temporarily stop the LaunchAgent and run Kanae in
-the foreground:
+Run the development app from the package root:
 
 ```sh
-kanae stop
-kanae run --verbose
+./dev
 ```
 
-Press `Control-C` when finished, then restore background operation:
+To use a fixed local signing identity:
 
 ```sh
-kanae restart
+KANAE_CODE_SIGN_IDENTITY="Kanae Development" ./dev
 ```
