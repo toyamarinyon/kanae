@@ -2,6 +2,10 @@ import Foundation
 import Darwin
 
 do {
+    if let pidFile = ProcessInfo.processInfo.environment["KANAE_DEV_PID_FILE"], !pidFile.isEmpty {
+        try "\(getpid())\n".write(toFile: pidFile, atomically: true, encoding: .utf8)
+    }
+
     let arguments = CommandLine.arguments
     if shouldHandleDirectOpenInvocation() {
         handleDirectOpen()

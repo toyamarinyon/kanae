@@ -177,6 +177,38 @@ Enka and Kanae were built after learning from prior work in this area:
 Those projects helped clarify what I wanted this tool to be: a smaller tool
 with a deliberately narrower scope.
 
+## Development
+
+Run the development app from the package root with one command:
+
+```bash
+./dev
+```
+
+`./dev` builds `.build/dev/KanaeDev.app` through the sandboxed SwiftPM command
+plugin, signs the bundle outside the plugin, then registers and starts the
+signed app through LaunchServices. `./dev` relays the app's verbose logs to the
+same terminal and forwards `Control-C` to stop it. The development bundle
+identifier is `dev.ultrahope.kanae.dev`.
+
+It uses ad hoc signing by default:
+
+```bash
+./dev
+```
+
+To sign with a local development certificate, provide its complete Keychain
+identity as one environment-variable value:
+
+```bash
+KANAE_CODE_SIGN_IDENTITY="Kanae Development" ./dev
+```
+
+Do not commit certificates, private keys, or machine-specific signing
+identities. On first launch, `./dev` asks macOS to add the signed `KanaeDev`
+app, then waits for you to enable it in System Settings > Privacy & Security >
+Accessibility. The permission belongs to `KanaeDev`, not the terminal app.
+
 ## CLI
 
 Build with SwiftPM:

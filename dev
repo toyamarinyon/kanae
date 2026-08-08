@@ -1,0 +1,120 @@
+#!/bin/sh
+set -eu
+
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
+cd "$script_dir"
+
+swift package plugin --allow-writing-to-package-directory kanae-build-dev
+
+code_sign_identity=${KANAE_CODE_SIGN_IDENTITY:-}
+if [ -z "$code_sign_identity" ]; then
+    code_sign_identity=-
+fi
+
+app_path="$script_dir/.build/dev/KanaeDev.app"
+dev_dir="$script_dir/.build/dev"
+accessibility_result="$dev_dir/accessibility-status"
+pid_file="$dev_dir/KanaeDev.pid"
+stdout_log="$dev_dir/KanaeDev.stdout.log"
+stderr_log="$dev_dir/KanaeDev.stderr.log"
+
+/usr/bin/codesign --force --sign "$code_sign_identity" "$app_path"
+/usr/bin/codesign --verify --deep --strict "$app_path"
+
+check_accessibility() {
+    rm -f "$accessibility_result"
+    if ! /usr/bin/open -W -n -g "$app_path" --args \
+        __accessibility-status --result-file "$accessibility_result" \
+        >/dev/null 2>&1; then
+        return 1
+    fi
+    [ -f "$accessibility_result" ] || return 1
+    [ "$(tr -d '\r\n' < "$accessibility_result")" = "granted" ]
+}
+
+if ! check_accessibility; then
+    /usr/bin/open -W -n "$app_path" >/dev/null 2>&1 || true
+    echo "Waiting for KanaeDev Accessibility permission. Press Control-C to stop."
+    while ! check_accessibility; do
+        sleep 1
+    done
+    echo "KanaeDev Accessibility permission granted."
+fi
+
+rm -f "$accessibility_result" "$pid_file" "$stdout_log" "$stderr_log"
+: > "$stdout_log"
+: > "$stderr_log"
+
+app_pid=
+open_pid=
+stdout_tail_pid=
+stderr_tail_pid=
+
+cleanup() {
+    trap - EXIT INT TERM
+
+    if [ -n "$app_pid" ] && kill -0 "$app_pid" 2>/dev/null; then
+        kill -TERM "$app_pid" 2>/dev/null || true
+    fi
+    if [ -n "$open_pid" ]; then
+        wait "$open_pid" 2>/dev/null || true
+    fi
+    for tail_pid in "$stdout_tail_pid" "$stderr_tail_pid"; do
+        if [ -n "$tail_pid" ] && kill -0 "$tail_pid" 2>/dev/null; then
+            kill -TERM "$tail_pid" 2>/dev/null || true
+        fi
+        if [ -n "$tail_pid" ]; then
+            wait "$tail_pid" 2>/dev/null || true
+        fi
+    done
+    rm -f "$pid_file"
+}
+
+handle_signal() {
+    signal_name=$1
+    exit_status=$2
+    trap - INT TERM
+
+    if [ -n "$app_pid" ] && kill -0 "$app_pid" 2>/dev/null; then
+        kill "-$signal_name" "$app_pid" 2>/dev/null || true
+        wait "$open_pid" 2>/dev/null || true
+        app_pid=
+        open_pid=
+    fi
+    exit "$exit_status"
+}
+
+trap cleanup EXIT
+trap 'handle_signal INT 130' INT
+trap 'handle_signal TERM 143' TERM
+
+tail -n 0 -F "$stdout_log" &
+stdout_tail_pid=$!
+tail -n 0 -F "$stderr_log" &
+stderr_tail_pid=$!
+
+/usr/bin/open -W -n -g \
+    -o "$stdout_log" \
+    --stderr "$stderr_log" \
+    --env "KANAE_DEV_PID_FILE=$pid_file" \
+    "$app_path" --args run --verbose &
+open_pid=$!
+
+while [ ! -s "$pid_file" ]; do
+    if ! kill -0 "$open_pid" 2>/dev/null; then
+        wait "$open_pid" 2>/dev/null || true
+        echo "error: KanaeDev exited before reporting its process ID" >&2
+        exit 1
+    fi
+    sleep 0.1
+done
+
+IFS= read -r app_pid < "$pid_file"
+case "$app_pid" in
+    '' | *[!0-9]*)
+        echo "error: KanaeDev reported an invalid process ID: $app_pid" >&2
+        exit 1
+        ;;
+esac
+
+wait "$open_pid"
